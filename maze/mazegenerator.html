@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Maze Runner</title>
+	<meta charset="utf-8">
+    <script type="text/javascript" src="js/threejs/three.min.js"></script>
+    <script type="text/javascript" src="js/controls/TrackballControls.js"></script>
+    <script type="text/javascript" src="js/cell.js"></script>
+    <script type="text/javascript" src="js/maze.js"></script>
+    <script type="text/javascript" src="js/ball.js"></script>
+    <script type="text/javascript" src="js/gamescene.js"></script>
+    <style>
+        body{
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Div which will hold the Output -->
+<div id="container">
+</div>
+
+<script type="text/javascript">
+
+function animate() {game.animate();}
+
+var game = new GameScene(window, document, 20, 20)
+	.initialize()
+	.animate();
+
+</script>
+</body>
+</html>
