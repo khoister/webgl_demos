@@ -1,0 +1,318 @@
+<html>
+	<head>
+		<title>Unit Circle</title>
+		<meta charset="utf-8">
+		<style>canvas { width: 100%; height; 100% }</style>
+	</head>
+	<body>
+		<div id="container"></div>
+		<script src="http://threejs.org/build/three.min.js"></script>
+		<script src="js/mathstats.js"></script>
+		<script>
+			var camera, scene, renderer;
+			var directionalLight;
+
+			var ring;
+			var ring_mesh;
+			var ring_material;
+			var ring_options = {
+				radius: 240,
+				tube: 5,
+				radialSegments: 8,
+				tubularSegments: 60
+			};
+			
+			var sphere;
+			var sphere_mesh;
+			var sphere_material;
+			var sphere_options = {
+				radius: 12,
+				widthSegments: 20,
+				heightSegments: 20
+			};
+			
+			var tube;
+			var vtube_mesh;		
+			var htube_mesh;
+
+			var tube_material;
+			var tube_options = {
+				radiusTop: 3,
+				radiusBottom: 3,
+				height: 600,
+				radiusSegments: 8,
+				heightSegments: 1,
+				openEnded: true
+			};
+
+			var cone;
+			var vcone_top_mesh;
+			var vcone_bottom_mesh;
+			var hcone_top_mesh;
+			var hcone_bottom_mesh;
+			var cone_options = {
+				radiusTop: 0,
+				radiusBottom: 15,
+				height: 25,
+				radiusSegments: 8,
+				heightSegments: 1,
+				openEnded: true
+			};
+
+			var side;
+			var opp_side_mesh;	
+			var adj_side_mesh;
+			var hypotenuse_mesh;
+			
+			var adj_side_material;
+			var opp_side_material;
+			var hypotenuse_material;
+			var side_options = {
+				radiusTop: 4,
+				radiusBottom: 4,
+				radiusSegments: 8,
+				heightSegments: 1,
+				openEnded: true
+			};
+			
+			var mouseDown = false;
+			var posX = ring_options.radius;
+			var posY = 0.0;
+			var oldPosX = posX;
+			var oldPosY = posY;
+			var scaleY = 0.0;
+			var sin  = "-";
+			var cos  = "-";
+			var tan  = "-";
+
+			// Text output
+			var mathStats = new MathStats();
+
+			// Draw scene
+			init();
+			animate();
+
+			function init()
+			{
+				//camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+				camera = new THREE.OrthographicCamera(
+					window.innerWidth / -2,
+					window.innerWidth / 2,
+					window.innerHeight / 2,
+					window.innerHeight / -2,
+					1, 1000);
+				camera.position.z = 500;
+
+				// Lights
+				directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+				directionalLight.position.set(100, -100, 100);
+
+				scene = new THREE.Scene();
+
+				// Ring
+				ring = new THREE.TorusGeometry(
+					ring_options.radius,
+					ring_options.tube,
+					ring_options.radialSegments,
+					ring_options.tubularSegments);
+
+				// Sphere
+				sphere = new THREE.SphereGeometry(
+					sphere_options.radius,
+					sphere_options.widthSegments,
+					sphere_options.heightSegments);
+
+				// Tubes
+				tube = new THREE.CylinderGeometry(
+					tube_options.radiusTop,
+					tube_options.radiusBottom,
+					tube_options.height,
+					tube_options.radiusSegments,
+					tube_options.heightSegments,
+					tube_options.openEnded);
+				
+				// Cones
+				cone = new THREE.CylinderGeometry(
+					cone_options.radiusTop,
+					cone_options.radiusBottom,
+					cone_options.height,
+					cone_options.radiusSegments,
+					cone_options.heightSegments,
+					cone_options.openEnded);
+					
+				side = new THREE.CylinderGeometry(
+					side_options.radiusTop,
+					side_options.radiusBottom,
+					ring_options.radius,
+					side_options.radiusSegments,
+					side_options.heightSegments,
+					side_options.openEnded);
+
+				// Materials
+				ring_material       = new THREE.MeshLambertMaterial({ color: 0x7777FF});
+				sphere_material     = new THREE.MeshLambertMaterial({ color: 0xFFFFFF});
+				tube_material       = new THREE.MeshLambertMaterial({ color: 0x77FFFF});
+				opp_side_material   = new THREE.MeshLambertMaterial({ color: 0x770000}); // Dark red
+				adj_side_material   = new THREE.MeshLambertMaterial({ color: 0x007777}); // Dark green
+				hypotenuse_material = new THREE.MeshLambertMaterial({ color: 0xFFFF00}); // Yellow
+		
+				// Add objects to scene
+				ring_mesh = new THREE.Mesh(ring, ring_material);
+				scene.add(ring_mesh);
+
+				sphere_mesh = new THREE.Mesh(sphere, sphere_material);
+				sphere_mesh.position.x = posX;
+				sphere_mesh.position.y = posY;
+				sphere.castShadow=true;
+				scene.add(sphere_mesh);
+				
+				vtube_mesh = new THREE.Mesh(tube, tube_material);
+				scene.add(vtube_mesh);
+
+				htube_mesh = new THREE.Mesh(tube, tube_material);
+				htube_mesh.rotation.z = Math.PI / 2;
+				scene.add(htube_mesh);
+				
+				vcone_top_mesh = new THREE.Mesh(cone, tube_material);
+				vcone_top_mesh.position.y = tube_options.height / 2;
+				scene.add(vcone_top_mesh);
+				
+				vcone_bottom_mesh = new THREE.Mesh(cone, tube_material);
+				vcone_bottom_mesh.rotation.z = Math.PI;
+				vcone_bottom_mesh.position.y = -(tube_options.height / 2);
+				scene.add(vcone_bottom_mesh);
+				
+				hcone_top_mesh = new THREE.Mesh(cone, tube_material);
+				hcone_top_mesh.rotation.z = -(Math.PI / 2);
+				hcone_top_mesh.position.x = tube_options.height / 2;
+				scene.add(hcone_top_mesh);
+				
+				hcone_bottom_mesh = new THREE.Mesh(cone, tube_material);
+				hcone_bottom_mesh.rotation.z = (Math.PI / 2);
+				hcone_bottom_mesh.position.x = -(tube_options.height / 2);
+				scene.add(hcone_bottom_mesh);
+				
+				adj_side_mesh = new THREE.Mesh(side, adj_side_material);
+				adj_side_mesh.rotation.z = Math.PI / 2;
+				scene.add(adj_side_mesh);
+
+				opp_side_mesh = new THREE.Mesh(side, opp_side_material);
+				scene.add(opp_side_mesh);
+				
+				hypotenuse_mesh = new THREE.Mesh(side, hypotenuse_material);
+				scene.add(hypotenuse_mesh);
+				
+				scene.add(directionalLight);
+				//var spotLight = new THREE.SpotLight( 0xffffff );
+				//spotLight.position.set( -40, 60, -10 );
+				//spotLight.castShadow = true;
+				//scene.add( spotLight );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setClearColor(new THREE.Color(0x333333, 1.0));
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.shadowMapEnabled = true;
+
+				document.body.appendChild(renderer.domElement);
+
+				// Textbox displaying trigonomic values
+				mathStats.domElement.style.position = 'absolute';
+				mathStats.domElement.style.left     = ((window.innerWidth >> 1) + 300) + 'px';
+				mathStats.domElement.style.top      = ((window.innerHeight >> 1) - 200)  + 'px';
+				mathStats.domElement.style.width    = 150;
+				mathStats.domElement.style.height   = 200;
+				document.body.appendChild(mathStats.domElement);
+
+				// Mouse events
+				renderer.domElement.addEventListener( 'mousedown', onMouseDown );
+				renderer.domElement.addEventListener( 'mouseup', onMouseUp );
+				renderer.domElement.addEventListener( 'mousemove', onMouseMove );
+			}
+
+			function animate()
+			{
+				requestAnimationFrame(animate);
+
+				var hypotenuse_length = ring_options.radius;
+
+				// Position the objects
+				sphere_mesh.position.x = posX;
+				sphere_mesh.position.y = posY;
+
+				// Resize and position the adjacent side of the triangle
+				adj_side_mesh.position.x = posX / 2;
+				adj_side_mesh.scale.y = Math.abs(posX / hypotenuse_length);
+				
+				// Resize and position the opposite side of the triangle
+				opp_side_mesh.position.x = posX;
+				opp_side_mesh.position.y = posY / 2;
+				opp_side_mesh.scale.y = Math.abs(posY / hypotenuse_length);
+				
+				// Position and orient the hypotenuse of the triangle
+				var rotateZ = Math.atan(posY / posX) - Math.PI/2;
+				hypotenuse_mesh.rotation.z = rotateZ;
+				hypotenuse_mesh.position.x = posX / 2;
+				hypotenuse_mesh.position.y = posY / 2;
+
+				mathStats.update(renderer, sin, cos, tan);
+
+				renderer.render(scene, camera);
+			}
+
+			function onMouseDown(event)
+			{
+				mouseDown = true;
+				calcSpherePosition(event.clientX, event.clientY);
+			}
+			
+			function onMouseUp(event)
+			{
+				mouseDown = false;
+			}
+			
+			function onMouseMove(event)
+			{
+				if (!mouseDown)
+				{
+					return;
+				}
+				calcSpherePosition(event.clientX, event.clientY);
+			}
+			
+			function calcSpherePosition(newX, newY)
+			{
+				// Center of screen
+				var centerX = window.innerWidth >> 1;
+				var centerY = window.innerHeight >> 1;
+				
+				var deltaX = newX - centerX;
+				var deltaY = -(newY - centerY);
+				var hyp = Math.sqrt(Math.pow(deltaX,2) + Math.pow(deltaY,2));
+
+				var ratio = hyp / ring_options.radius;
+
+				// Save old position
+				oldPosX = posX;
+				oldPosY = posY;
+
+				// Based on the ratio of the hypotenuse,
+				// calculate the adjacent (posX) and opposite (posY)
+				// lengths.
+				posX = (ring_options.radius * deltaX) / hyp;  // Adjacent side
+				posY = (ring_options.radius * deltaY) / hyp;  // Opposite side
+
+				cos = (deltaX / hyp);
+				sin = (deltaY / hyp);
+				if (Math.abs(deltaX) < 0.000001)
+				{
+					tan = "undefined";
+				}
+				else
+				{
+					tan = (deltaY / deltaX);
+				}
+			}
+		</script>
+	</body>
+<html>
+
