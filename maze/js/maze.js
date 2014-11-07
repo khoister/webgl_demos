@@ -31,7 +31,7 @@ function Maze(scene, rows, columns)
 
 	// Slows down the movement of the player to make it easier to track
 	// The higher the number, the slower the movement
-	this.slow_animation = 8;
+	this.slow_animation = 4;
 
 	this.x_increment = 0;
 	this.y_increment = 0;
@@ -40,10 +40,13 @@ function Maze(scene, rows, columns)
 	this.found_destination = false;
 }
 
-Maze.TOP    = 1;
-Maze.RIGHT  = 2;
-Maze.BOTTOM = 3;
-Maze.LEFT   = 4;
+Maze.DIRECTION =
+{
+	TOP    : 1,
+	RIGHT  : 2,
+	BOTTOM : 3,
+	LEFT   : 4
+};
 
 Maze.prototype.get_rows = function()
 {
@@ -262,16 +265,16 @@ Maze.prototype.internal_generate = function(current_cell)
 
 			switch (direction)
 			{
-				case Maze.TOP:
+				case Maze.DIRECTION.TOP:
 					next_neighbor = current_cell.get_top_neighbor();
 					break;
-				case Maze.RIGHT:
+				case Maze.DIRECTION.RIGHT:
 					next_neighbor = current_cell.get_right_neighbor();
 					break;
-				case Maze.BOTTOM:
+				case Maze.DIRECTION.BOTTOM:
 					next_neighbor = current_cell.get_bottom_neighbor();
 					break;
-				case Maze.LEFT:
+				case Maze.DIRECTION.LEFT:
 					next_neighbor = current_cell.get_left_neighbor();
 					break;
 				default:
@@ -284,22 +287,22 @@ Maze.prototype.internal_generate = function(current_cell)
 				var wall_to_remove = null;
 				switch (direction)
 				{
-					case Maze.TOP:
+					case Maze.DIRECTION.TOP:
 						wall_to_remove = current_cell.get_top_wall();
 						current_cell.set_top_wall(null);
 						next_neighbor.set_bottom_wall(null);
 						break;
-					case Maze.RIGHT:
+					case Maze.DIRECTION.RIGHT:
 						wall_to_remove = current_cell.get_right_wall();
 						current_cell.set_right_wall(null);
 						next_neighbor.set_left_wall(null);
 						break;
-					case Maze.BOTTOM:
+					case Maze.DIRECTION.BOTTOM:
 						wall_to_remove = current_cell.get_bottom_wall();
 						current_cell.set_bottom_wall(null);
 						next_neighbor.set_top_wall(null);
 						break;
-					case Maze.LEFT:
+					case Maze.DIRECTION.LEFT:
 						wall_to_remove = current_cell.get_left_wall();
 						current_cell.set_left_wall(null);
 						next_neighbor.set_right_wall(null);
@@ -320,7 +323,11 @@ Maze.prototype.internal_generate = function(current_cell)
 
 Maze.prototype.generate = function()
 {
-	this.internal_generate(this.cells[0][0]);
+	// Convert from 3D coordinates to (row, column) to get the starting cell
+	var start_x = this.player.get_row_position();
+	var start_y = this.player.get_column_position();
+
+	this.internal_generate(this.cells[start_x][start_y]);
 	this.removed_walls.reverse();
 	return this;
 }
@@ -350,15 +357,15 @@ Maze.prototype.internal_traverse = function(current_cell, x, y)
 				next_neighbor = current_cell.get_top_neighbor();
 				neighboring_wall = current_cell.get_top_wall(); 
 				break;
-			case Maze.RIGHT:
+			case Maze.DIRECTION.RIGHT:
 				next_neighbor = current_cell.get_right_neighbor();
 				neighboring_wall = current_cell.get_right_wall();
 				break;
-			case Maze.BOTTOM:
+			case Maze.DIRECTION.BOTTOM:
 				next_neighbor = current_cell.get_bottom_neighbor();
 				neighboring_wall = current_cell.get_bottom_wall();
 				break;
-			case Maze.LEFT:
+			case Maze.DIRECTION.LEFT:
 				next_neighbor = current_cell.get_left_neighbor();
 				neighboring_wall = current_cell.get_left_wall();
 				break;
@@ -388,11 +395,17 @@ Maze.prototype.traverse = function()
 {
 	this.clear();
 
+	// Convert from 3D coordinates to (row, column) to get the starting cell
+	var start_x = this.player.get_row_position();
+	var start_y = this.player.get_column_position();
+
 	this.internal_traverse(
-		this.cells[0][0],
+		this.cells[start_x][start_y],
 		this.destination_marker.get_x_position(),
 		this.destination_marker.get_y_position());
 
+	// Since the path coordinates are popped (as in a stack using Array.pop),
+	// the traversal path is reversed.
 	this.traversal_path.reverse();
 	return this;
 }
@@ -409,42 +422,43 @@ Maze.prototype.add_destination_marker = function(material, x, y)
 
 Maze.prototype.animate = function()
 {
-	if (!this.found_destination)
+	if (this.found_destination)
 	{
-		var wall_to_remove = this.next_removed_wall();
-		if (wall_to_remove != null)
-		{
-			// Animate the maze construction
-			this.scene.remove(wall_to_remove);
-			delete wall_to_remove;
-		}
-		else
-		{
-			// Maze contruction animation is complete.
-			// Now, traverse the maze
-			if (this.player_moves++ % this.slow_animation == 0)
-			{
-				var cell = this.next_cell_in_path();
-				if (cell != null)
-				{
-					var old_x = Math.round(this.player.get_x_position());
-					var old_y = Math.round(this.player.get_y_position());
+		return;
+	}
 
-					var new_x = this.player.calc_x_position(cell.x);
-					var new_y = this.player.calc_y_position(cell.y);
+	var wall_to_remove = this.next_removed_wall();
+	if (wall_to_remove != null)
+	{
+		// Animate the maze construction
+		this.scene.remove(wall_to_remove);
+		delete wall_to_remove;
+	}
+	else
+	{
+		// Maze contruction animation is complete.
+		// Now, traverse the maze
+		if (this.player_moves++ % this.slow_animation == 0)
+		{
+			var cell = this.next_cell_in_path();
+			if (cell != null)
+			{
+				var old_x = Math.round(this.player.get_x_position());
+				var old_y = Math.round(this.player.get_y_position());
+
+				var new_x = this.player.calc_x_position(cell.x);
+				var new_y = this.player.calc_y_position(cell.y);
 					
-					this.x_increment = (new_x - old_x) / this.slow_animation;
-					this.y_increment = (new_y - old_y) / this.slow_animation;
-				}
-				else
-				{
-					this.found_destination = true;
-					this.x_increment = 0;
-					this.y_increment = 0;
-				}
+				this.x_increment = (new_x - old_x) / this.slow_animation;
+				this.y_increment = (new_y - old_y) / this.slow_animation;
 			}
-			this.player.update_position(this.x_increment, this.y_increment);
+			else
+			{
+				this.found_destination = true;
+				return;
+			}
 		}
+		this.player.update_position(this.x_increment, this.y_increment);
 	}
 }
 

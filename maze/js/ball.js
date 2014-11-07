@@ -13,6 +13,16 @@ function Ball(scene, material, maze_width, maze_height, x, y)
 	this.scene.add(this.sphere);
 }
 
+Ball.prototype.get_row_position = function()
+{
+	return (Math.round(this.sphere.position.z) + this.maze_height - Cell.WALL_LENGTH / 2) / Cell.WALL_LENGTH;
+}
+
+Ball.prototype.get_column_position = function()
+{
+	return (Math.round(this.sphere.position.x) + this.maze_width - Cell.WALL_LENGTH / 2) / Cell.WALL_LENGTH;
+}
+
 Ball.prototype.get_x_position = function()
 {
 	return this.sphere.position.x;
@@ -26,13 +36,12 @@ Ball.prototype.get_y_position = function()
 
 Ball.prototype.calc_x_position = function(column)
 {
-	//return (-this.maze_width + (Cell.WALL_LENGTH / 2)) + (column * Cell.WALL_LENGTH);
-	return (-(this.maze_width) + Cell.WALL_LENGTH / 2) + (column * Cell.WALL_LENGTH);
+	return -this.maze_width + (Cell.WALL_LENGTH / 2) + (column * Cell.WALL_LENGTH);
 }
 
 Ball.prototype.calc_y_position = function(row)
 {
-	return (-this.maze_height + (Cell.WALL_LENGTH / 2)) + (row * Cell.WALL_LENGTH);
+	return -this.maze_height + (Cell.WALL_LENGTH / 2) + (row * Cell.WALL_LENGTH);
 }
 
 Ball.prototype.update_position = function(x_increment, y_increment)

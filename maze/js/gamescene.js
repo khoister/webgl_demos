@@ -32,7 +32,10 @@ GameScene.prototype.initialize = function()
 	var yellow = new THREE.MeshLambertMaterial({color: 0xFFFF00, side: THREE.DoubleSide});
 	this.maze.add_destination_marker(yellow, this.rows-1, this.columns-1);
 
-	this.maze.initialize().generate().traverse();
+	this.maze
+		.initialize()
+		.generate()
+		.traverse();
 
 	this.renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
 	this.renderer.setSize(window.innerWidth, window.innerHeight);
