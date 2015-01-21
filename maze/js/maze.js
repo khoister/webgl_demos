@@ -218,34 +218,23 @@ Maze.prototype.initialize = function()
 
 Maze.get_random_neighbor = function()
 {
-	// Random number between 1 (inclusive) and 5 (exclusive)
-	// 1 = top
-	// 2 = right
-	// 3 = bottom
-	// 4 = left
-	return Math.floor(Math.random() * (5 - 1)) + 1;
+	// Random number between 0 (inclusive) and 4 (exclusive)
+	return Math.floor(Math.random() * (5 - 1));
 }
 
 // Get a random list of directions
 Maze.get_direction_list = function()
 {
-	var directions = [];
-	while (directions.length < 4)
+	var directions = [0, 0, 0, 0];
+
+	// n possible values -> [1,2,3,4]
+	var n = 1;
+	while (n <= directions.length)
 	{
-		var n = Maze.get_random_neighbor();
-		var exists = false
-		for (var i = 0; i < directions.length; i++)
-		{
-			if (directions[i] == n)
-			{
-				exists = true;
-				break;
-			}
-		}
-		if (!exists)
-		{
-			directions.push(n);
-		}
+		// r indexes into the array : values -> [0,1,2,3]
+		var r = Maze.get_random_neighbor();
+		if (directions[r] == 0)
+			directions[r] = n++;
 	}
 	return directions;
 }
