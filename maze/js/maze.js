@@ -216,25 +216,24 @@ Maze.prototype.initialize = function()
 	return this;
 }
 
-Maze.get_random_neighbor = function()
+Maze.get_random_neighbor = function(l, u)
 {
-	// Random number between 0 (inclusive) and 4 (exclusive)
-	return Math.floor(Math.random() * (5 - 1));
+	// Random number between l (inclusive) and u (exclusive)
+	return Math.floor(Math.random() * (u - l)) + l;
 }
 
 // Get a random list of directions
 Maze.get_direction_list = function()
 {
-	var directions = [0, 0, 0, 0];
+	var directions = [Maze.DIRECTION.TOP, Maze.DIRECTION.RIGHT, Maze.DIRECTION.BOTTOM, Maze.DIRECTION.LEFT];
 
-	// n possible values -> [1,2,3,4]
-	var n = 1;
-	while (n <= directions.length)
+	for (var i = 0; i < directions.length; ++i)
 	{
-		// r indexes into the array : values -> [0,1,2,3]
-		var r = Maze.get_random_neighbor();
-		if (directions[r] == 0)
-			directions[r] = n++;
+		var r = Maze.get_random_neighbor(i, directions.length);
+
+		var t = directions[i];
+		directions[i] = directions[r];
+		directions[r] = t;
 	}
 	return directions;
 }
