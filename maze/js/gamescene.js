@@ -25,19 +25,19 @@ GameScene.prototype.initialize = function()
 	this.maze = new Maze(this.scene, this.rows, this.columns);
 
 	// Put the maze runner at starting point
-	var green = new THREE.MeshLambertMaterial({color: 0x00FF00, side: THREE.DoubleSide});
-	this.maze.add_player(green, 0, 0);
+	var runner_color = new THREE.MeshLambertMaterial({color: 0x257737, side: THREE.DoubleSide});
+	this.maze.add_player(runner_color, 0, 0);
 
 	// Destination marker
-	var yellow = new THREE.MeshLambertMaterial({color: 0xFFFF00, side: THREE.DoubleSide});
-	this.maze.add_destination_marker(yellow, this.rows-1, this.columns-1);
+	var dest_color = new THREE.MeshLambertMaterial({color: 0xE08428, side: THREE.DoubleSide});
+	this.maze.add_destination_marker(dest_color, this.rows-1, this.columns-1);
 
 	this.maze
 		.initialize()
 		.generate()
 		.traverse();
 
-	this.renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+	this.renderer.setClearColor(0xA5AFAD);
 	this.renderer.setSize(window.innerWidth, window.innerHeight);
 	this.renderer.shadowMapEnabled = true;
 
